@@ -30,7 +30,7 @@ class RegistrationController extends Controller
             'mobile' => $request->mobile,
             'sex' => $request->sex,
             'dob' => $request->dob,
-            'type'=> 'admin'
+            'type'=> 'sales'
         ]);
 
         // 4. Handle response
