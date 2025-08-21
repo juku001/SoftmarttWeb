@@ -30,20 +30,30 @@ class LogInController extends Controller
             $data = $response->json()['data'];
             $dataUser = $data['user'];
 
-            $user = \App\Models\User::firstOrCreate(
-                ['id' => $dataUser['id']], // primary key from API
-                [
-                    'name' => $dataUser['name'],
-                    'email' => $dataUser['email'],
-                    // You can leave password blank or hash a dummy value
-                    'password' => bcrypt('api-login'),
-                ]
-            );
+            if ($dataUser['user_type'] == 'superadmin' || $dataUser['user_type'] == 'admin') {
 
-            Auth::login($user);
-            Session::put('auth_token', $data['token']);
+                $user = \App\Models\User::firstOrCreate(
+                    ['id' => $dataUser['id']], // primary key from API
+                    [
+                        'name' => $dataUser['name'],
+                        'email' => $dataUser['email'],
+                        // You can leave password blank or hash a dummy value
+                        'password' => bcrypt('api-login'),
+                    ]
+                );
 
-            return redirect()->route('dashboard');
+                Auth::login($user);
+                Session::put('auth_token', $data['token']);
+
+                return redirect()->route('dashboard');
+
+            } else {
+                return back()->withErrors(
+                    [
+                        'email' => 'Only Admins can log in here.',
+                    ]
+                );
+            }
 
         }
 
