@@ -11,35 +11,39 @@ class RegistrationController extends Controller
 {
     public function store(Request $request)
     {
-        // 1. Validate the form inputs
         $request->validate([
-            'fullname' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'email' => 'required|email',
             'mobile' => 'required|string|max:20',
-            'sex' => 'required|in:Male,Female',
+            'sex' => 'required|in:male,female',
             'dob' => 'required|date',
         ]);
 
-        // 2. API URL
         $url = ApiRoutes::register();
 
-        // 3. Send POST request to API
-        $response = Http::withToken(Session::get('auth_token'))->post($url, [
-            'name' => $request->fullname,
-            'email' => $request->email,
-            'mobile' => $request->mobile,
-            'sex' => $request->sex,
-            'dob' => $request->dob,
-            'type'=> 'sales'
-        ]);
+        $request['type']= 'sales';
 
-        // 4. Handle response
+
+        $response = Http::withToken(Session::get('auth_token'))->post($url, $request->all());
+
         if ($response->successful()) {
             return redirect()->back()->with('success', 'Admin created successfully!');
         }
 
-        // If API fails
+        // Handle API validation errors
+        if ($response->status() == 422) {
+            $apiErrors = $response->json()['errors'] ?? [];
+            // Flatten the errors for withErrors()
+            $flattened = [];
+            foreach ($apiErrors as $field => $messages) {
+                $flattened[$field] = $messages[0]; // just take the first error
+            }
+            return redirect()->back()->withInput()->withErrors($flattened);
+        }
+
+        // General API error
         $errorMessage = $response->json()['message'] ?? 'Failed to create admin.';
-        return redirect()->back()->withErrors(['error' => $errorMessage]);
+        return redirect()->back()->withInput()->withErrors(['error' => $errorMessage]);
     }
+
 }
