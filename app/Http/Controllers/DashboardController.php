@@ -11,7 +11,7 @@ class DashboardController extends Controller
 {
     public function create()
     {
-        $adminUrl = ApiRoutes::getUsersByType('customer');
+        $adminUrl = ApiRoutes::getUsersByType('admin');
 
         // Call the API with the auth token
         $response = Http::withToken(Session::get('auth_token'))->get($adminUrl);
